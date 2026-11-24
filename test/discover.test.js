@@ -58,3 +58,20 @@ test('her Ollama brain uses what she found, unless he set an address', () => {
   s = { ollamaUrl: 'http://10.0.0.5:11434' };
   assert.equal(b.url, 'http://10.0.0.5:11434');
 });
+
+test('Hearth OS 1.18: the AI picked for Ithil in Settings › AI is used when it answers', async () => {
+  const fs = require('fs'); const os = require('os'); const path = require('path');
+  const { findOllama: find, hearthPick } = require('../src/main/mind/discover');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ithil-pick-'));
+  const f = path.join(dir, 'ai-uses.json');
+  fs.writeFileSync(f, JSON.stringify({ uses: { ithil: { url: 'http://100.64.0.7:11434/v1', model: 'qwen3:30b-a3b', label: 'chris-hearth' } } }));
+  const env = { HEARTH_AI_USES: f };
+  assert.deepStrictEqual(hearthPick(env), { url: 'http://100.64.0.7:11434', model: 'qwen3:30b-a3b', label: 'chris-hearth' });
+  const fetchImpl = async (u) => ({ ok: u.startsWith('http://100.64.0.7:11434/'), text: async () => '{"models":[]}' });
+  const got = await find({ settings: {}, env, fetchImpl, list: [] });
+  assert.strictEqual(got.url, 'http://100.64.0.7:11434');
+  // Her own setting still wins; an online pick (no key here) is never used.
+  assert.strictEqual((await find({ settings: { ollamaUrl: 'http://10.0.0.2:11434' }, env, fetchImpl, list: [] })).source, 'your setting');
+  fs.writeFileSync(f, JSON.stringify({ uses: { ithil: { online: 'claude' } } }));
+  assert.strictEqual(hearthPick(env), null);
+});

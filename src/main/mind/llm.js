@@ -30,7 +30,9 @@ class OllamaBrain {
     if (mine && mine !== 'http://127.0.0.1:11434') return mine;
     return (this.found && this.found.url) || 'http://127.0.0.1:11434';
   }
-  get model() { return (this.getModel && this.getModel()) || this.getSettings().chatModel || 'huihui_ai/qwen3-abliterated:8b-v2'; }
+  // Her grown brain first; then the model picked for her in Hearth OS's Settings › AI (Hearth OS 1.18, found.model);
+  // then her own setting.
+  get model() { return (this.getModel && this.getModel()) || (this.found && this.found.model) || this.getSettings().chatModel || 'huihui_ai/qwen3-abliterated:8b-v2'; }
 
   async _post(path, body, timeoutMs) {
     const ctl = new AbortController();

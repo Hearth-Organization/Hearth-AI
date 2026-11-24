@@ -67,11 +67,26 @@ function chatOf(dev) {
   return { url: svc.url.replace(/\/+$/, ''), models: Array.isArray(svc.models) ? svc.models.filter((m) => typeof m === 'string').slice(0, 200) : [], device: String(dev.device || '').slice(0, 63), nvidia: Boolean(dev.gpu && dev.gpu.vendor === 'nvidia') };
 }
 
-// Where her Ollama is: { url, source, device? }. o: { settings, fetchImpl, execFileImpl, list }.
+// Hearth OS 1.18: the AI picked for Ithil in Hearth OS's Settings › AI (~/.config/nimbus/ai-uses.json, uses.ithil:
+// {url, model, label}; written by Hearth OS, only read here). An online pick is left out: she has no key of yours.
+function hearthPick(env) {
+  const e = env || process.env;
+  const f = e.HEARTH_AI_USES || require('path').join(e.HOME || require('os').homedir(), '.config', 'nimbus', 'ai-uses.json');
+  try {
+    const j = JSON.parse(require('fs').readFileSync(f, 'utf8'));
+    const u = j && j.uses && j.uses.ithil;
+    if (!u || typeof u !== 'object' || typeof u.url !== 'string' || !/^https?:\/\//.test(u.url)) return null;
+    return { url: u.url.replace(/\/+$/, '').replace(/\/v1$/, ''), model: typeof u.model === 'string' ? u.model : '', label: String(u.label || 'your pick') };
+  } catch (_) { return null; }
+}
+
+// Where her Ollama is: { url, source, device? }. o: { settings, fetchImpl, execFileImpl, list, env }.
 async function findOllama(o) {
   const s = (o && o.settings) || {};
   const mine = String(s.ollamaUrl || '').trim().replace(/\/+$/, '');
   if (mine && mine !== DEFAULT_OLLAMA) return { url: mine, source: 'your setting' };
+  const pick = hearthPick(o && o.env);
+  if (pick && await getJson(pick.url + '/api/tags', o && o.fetchImpl, 3000)) return { url: pick.url, source: 'Hearth OS Settings › AI (' + pick.label + ')', model: pick.model || undefined };
   if (await getJson(DEFAULT_OLLAMA + '/api/tags', o && o.fetchImpl, 2000)) return { url: DEFAULT_OLLAMA, source: 'this PC' };
   const ps = (o && o.list) || await peers(o && o.execFileImpl);
   const answers = await Promise.all(ps.filter((p) => !p.self).map((p) => getJson('http://' + p.ip + ':' + PORT + '/v1/hearth/ai', o && o.fetchImpl, 3000)));
@@ -80,4 +95,4 @@ async function findOllama(o) {
   return { url: DEFAULT_OLLAMA, source: ps.length ? 'this PC (no Hearth device shares its chat)' : 'this PC (Tailscale isn\'t running)' };
 }
 
-module.exports = { findOllama, peersFrom, chatOf, isTailscaleV4, DEFAULT_OLLAMA, PORT };
+module.exports = { findOllama, hearthPick, peersFrom, chatOf, isTailscaleV4, DEFAULT_OLLAMA, PORT };
