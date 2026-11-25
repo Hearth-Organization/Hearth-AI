@@ -10,10 +10,10 @@
   },
   "license": "UNLICENSED",
   "private": true,
-  "homepage": "https://github.com/Dragongamer9/hearth-ai",
+  "homepage": "https://github.com/Hearth-Organization/Hearth-AI",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Dragongamer9/hearth-ai.git"
+    "url": "https://github.com/Hearth-Organization/Hearth-AI.git"
   },
   "scripts": {
     "start": "electron .",

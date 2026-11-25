@@ -17,5 +17,5 @@ see `docs/colibri.md`. The owner is Dragongamer9.
    touches boot files, never changes his settings, never deletes his files.
 5. **Her settings and memories are never lost or changed by themselves:** atomic writes, keep a backup, never save
    defaults over a file that failed to read.
-6. She talks to the Hearth AI Command Center (`Dragongamer9/hearth-ai-command-center`, `electron/ithil.cjs`) through
+6. She talks to the Hearth AI Command Center (`Hearth-Organization/hearth-ai-command-center`, `electron/ithil.cjs`) through
    `/v1`; keep the two in step.
